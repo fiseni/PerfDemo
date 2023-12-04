@@ -26,43 +26,65 @@ public class Benchmark
         Console.WriteLine("### Setup completed!");
     }
 
+    //[Benchmark(Baseline = true)]
+    //public void Original()
+    //{
+    //    var service = new Service1(_masterParts);
+
+    //    for (var i = 0; i < _parts.Length; i++)
+    //    {
+    //        _ = service.FindMatchedPart(_parts[i].PartNumber);
+    //    }
+    //}
+
+    //[Benchmark]
+    //public void Option2()
+    //{
+    //    var service = new Service2(_masterParts);
+
+    //    for (var i = 0; i < _parts.Length; i++)
+    //    {
+    //        _ = service.FindMatchedPart(_parts[i].PartNumber);
+    //    }
+    //}
+
+    //[Benchmark]
+    //public void Option3()
+    //{
+    //    var service = new Service3(_masterParts, _parts);
+
+    //    for (var i = 0; i < _parts.Length; i++)
+    //    {
+    //        _ = service.FindMatchedPart(_parts[i].PartNumber);
+    //    }
+    //}
+
     [Benchmark(Baseline = true)]
-    public void Original()
-    {
-        var service = new Service1(_masterParts);
-
-        for (var i = 0; i < _parts.Length; i++)
-        {
-            _ = service.FindMatchedPart(_parts[i].PartNumber);
-        }
-    }
-
-    [Benchmark]
-    public void Option2()
-    {
-        var service = new Service2(_masterParts);
-
-        for (var i = 0; i < _parts.Length; i++)
-        {
-            _ = service.FindMatchedPart(_parts[i].PartNumber);
-        }
-    }
-
-    [Benchmark]
-    public void Option3()
-    {
-        var service = new Service3(_masterParts, _parts);
-
-        for (var i = 0; i < _parts.Length; i++)
-        {
-            _ = service.FindMatchedPart(_parts[i].PartNumber);
-        }
-    }
-
-    [Benchmark]
     public void Option4()
     {
         var service = new Service4(_masterParts, _parts);
+
+        for (var i = 0; i < _parts.Length; i++)
+        {
+            _ = service.FindMatchedPart(_parts[i].PartNumber);
+        }
+    }
+
+    [Benchmark]
+    public void Option5()
+    {
+        var service = new Service5(_masterParts);
+
+        for (var i = 0; i < _parts.Length; i++)
+        {
+            _ = service.FindMatchedPart(_parts[i].PartNumber);
+        }
+    }
+
+    [Benchmark]
+    public void Option6()
+    {
+        var service = new Service6(_masterParts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
