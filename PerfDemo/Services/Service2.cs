@@ -13,9 +13,10 @@ public class Service2
 
     public MasterPart? FindMatchedPart(string partNumber)
     {
+        partNumber = partNumber.Trim();
         if (partNumber.Length < 3) return null;
 
-        partNumber = partNumber.Trim().ToUpper();
+        partNumber = partNumber.ToUpper();
 
         var masterPart = FindMatchForPartNumber(partNumber, _masterPartsInfo.MasterPartNumbers, _masterPartsInfo.StartIndexByPartNumberLength, false);
         masterPart ??= FindMatchForPartNumber(partNumber, _masterPartsInfo.MasterPartNumbersNoHyphens, _masterPartsInfo.StartIndexByPartNumberNoHyphensLength, true);

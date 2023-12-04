@@ -22,9 +22,10 @@ public class Service3
 
     public MasterPart? FindMatchedPart(string partNumber)
     {
+        partNumber = partNumber.Trim();
         if (partNumber.Length < 3) return null;
 
-        partNumber = partNumber.Trim().ToUpper();
+        partNumber = partNumber.ToUpper();
 
         return _masterPartsByPartNumber.GetValueOrDefault(partNumber);
     }
