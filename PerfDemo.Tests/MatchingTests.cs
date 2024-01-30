@@ -106,4 +106,28 @@ public class MatchingTests
 
         Assert.Equal(expectedMatch, result?.PartNumber);
     }
+
+    [Theory]
+    [MemberData(nameof(GetPartNumbers))]
+    public void Option5_Tests(string? expectedMatch, string partNumber)
+    {
+        var partNumbers = _partNumbersSeed.Select(x => new Part(x.PartNumber)).ToArray();
+
+        var service = new Service5(_masterParts);
+        var result = service.FindMatchedPart(partNumber);
+
+        Assert.Equal(expectedMatch, result?.PartNumber);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetPartNumbers))]
+    public void Option6_Tests(string? expectedMatch, string partNumber)
+    {
+        var partNumbers = _partNumbersSeed.Select(x => new Part(x.PartNumber)).ToArray();
+
+        var service = new Service6(_masterParts);
+        var result = service.FindMatchedPart(partNumber);
+
+        Assert.Equal(expectedMatch, result?.PartNumber);
+    }
 }
