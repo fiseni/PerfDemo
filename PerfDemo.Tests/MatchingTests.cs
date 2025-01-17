@@ -6,6 +6,7 @@ public class MatchingTests
 {
     private static readonly MasterPart[] _masterParts =
     [
+        new("699"),
         new("Aqwertyuio"),
         new("QWERTYUIO"),
         new("zxc"),
@@ -44,8 +45,10 @@ public class MatchingTests
         new(null, "KLMN"),
         new(null, "ijkl"),
         new(null, "IJKL"),
+        new("699", "W50-699"),
         new("CDEFGHIJKLMNO", "defghijklmno"),
         new("CDEFGHIJKLMNO", "DEFGHIJKLMNO"),
+        new("ABCDEFGHI---------------JKLMNO", "DEFGHI---------------JKLMNO"),
         new("ABCDEFGHI---------------JKLMNO", "bcdefghijklmno"),
         new("ABCDEFGHI---------------JKLMNO", "BCDEFGHIJKLMNO"),
         new("AAQWERTYUIO", "AAAAqwertyuio"),

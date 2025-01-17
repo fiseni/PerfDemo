@@ -87,13 +87,11 @@ public class Service4
             MasterPartNumbers = masterParts
                 .Where(x => x.PartNumber.Length > 2)
                 .OrderBy(x => x.PartNumber.Length)
-                .DistinctBy(x => x.PartNumber)
                 .ToArray();
 
             MasterPartNumbersNoHyphens = masterParts
                 .Where(x => x.PartNumberNoHyphens.Length > 2)
                 .OrderBy(x => x.PartNumberNoHyphens.Length)
-                .DistinctBy(x => x.PartNumberNoHyphens)
                 .ToArray();
 
             SuffixesByLength = GenerateDictionary(MasterPartNumbers, false);
@@ -172,7 +170,6 @@ public class Service4
                 .Select(x => x.PartNumber.Trim().ToUpper())
                 .Where(x => x.Length > 2)
                 .OrderBy(x => x.Length)
-                .Distinct()
                 .ToArray();
 
             SuffixesByLength = GenerateDictionary(PartNumbers);
@@ -198,7 +195,7 @@ public class Service4
 
             BackwardFill(startIndexesByLength);
 
-            for (var length = 4; length <= 50; length++)
+            for (var length = 3; length <= 50; length++)
             {
                 var tempDictionary = new Dictionary<string, List<string>>();
 

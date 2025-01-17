@@ -20,7 +20,7 @@ public class Benchmark
             .Select(x => new Part(x))
             .ToArray();
         _masterParts = File.ReadAllLines(Path.Combine("..", "..", "..", "..", "Data", "master-parts.txt"))
-            .Select(x=>new MasterPart(x))
+            .Select(x => new MasterPart(x))
             .ToArray();
 
         Console.WriteLine("### Setup completed!");
@@ -29,44 +29,68 @@ public class Benchmark
     [Benchmark(Baseline = true)]
     public void Original()
     {
+        var matchCount = 0;
         var service = new Service1(_masterParts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
-            _ = service.FindMatchedPart(_parts[i].PartNumber);
+            var match = service.FindMatchedPart(_parts[i].PartNumber);
+            if (match is not null)
+            {
+                matchCount++;
+            }
         }
+        Console.WriteLine($"### Found {matchCount:n0} matches!");
     }
 
     [Benchmark]
     public void Option2()
     {
+        var matchCount = 0;
         var service = new Service2(_masterParts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
-            _ = service.FindMatchedPart(_parts[i].PartNumber);
+            var match = service.FindMatchedPart(_parts[i].PartNumber);
+            if (match is not null)
+            {
+                matchCount++;
+            }
         }
+        Console.WriteLine($"### Found {matchCount:n0} matches!");
     }
 
     [Benchmark]
     public void Option3()
     {
+        var matchCount = 0;
         var service = new Service3(_masterParts, _parts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
-            _ = service.FindMatchedPart(_parts[i].PartNumber);
+            var match = service.FindMatchedPart(_parts[i].PartNumber);
+            if (match is not null)
+            {
+                matchCount++;
+            }
         }
+        Console.WriteLine($"### Found {matchCount:n0} matches!");
     }
 
     [Benchmark]
     public void Option4()
     {
+        var matchCount = 0;
         var service = new Service4(_masterParts, _parts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
-            _ = service.FindMatchedPart(_parts[i].PartNumber);
+            var match = service.FindMatchedPart(_parts[i].PartNumber);
+            if (match is not null)
+            {
+                matchCount++;
+            }
         }
+        Console.WriteLine($"### Found {matchCount:n0} matches!");
     }
 }
