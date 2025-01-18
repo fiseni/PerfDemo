@@ -1,14 +1,23 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
-namespace PerfDemo.Services;
+namespace PerfDemo.Processors;
 
-public class Service2
+public class Processor3
 {
-    private readonly MasterPartsInfo _masterPartsInfo;
+    private readonly ConcurrentDictionary<string, MasterPart?> _masterPartsByPartNumber;
 
-    public Service2(MasterPart[] masterParts)
+    public Processor3(MasterPart[] masterParts, Part[] parts)
     {
-        _masterPartsInfo = new MasterPartsInfo(masterParts);
+        var masterPartsInfo = new MasterPartsInfo(masterParts);
+
+        var distinctParts = parts
+            .Select(x => x.PartNumber.Trim().ToUpper())
+            .Where(x => x.Length > 2)
+            .Distinct()
+            .ToArray();
+
+        _masterPartsByPartNumber = BuildDictionary(distinctParts, masterPartsInfo);
     }
 
     public MasterPart? FindMatchedPart(string partNumber)
@@ -18,9 +27,24 @@ public class Service2
 
         partNumber = partNumber.ToUpper();
 
-        var masterPart = FindMatchForPartNumber(partNumber, _masterPartsInfo.MasterPartNumbers, _masterPartsInfo.StartIndexByPartNumberLength, false);
-        masterPart ??= FindMatchForPartNumber(partNumber, _masterPartsInfo.MasterPartNumbersNoHyphens, _masterPartsInfo.StartIndexByPartNumberNoHyphensLength, true);
-        masterPart ??= FindMatchInPartNumber(partNumber, _masterPartsInfo.MasterPartNumbers, _masterPartsInfo.StartIndexByPartNumberLengthOpposite);
+        return _masterPartsByPartNumber.GetValueOrDefault(partNumber);
+    }
+
+    private static ConcurrentDictionary<string, MasterPart?> BuildDictionary(string[] parts, MasterPartsInfo masterPartsInfo)
+    {
+        var masterPartsByPartNumber = new ConcurrentDictionary<string, MasterPart?>();
+
+        Parallel.ForEach(parts, part => masterPartsByPartNumber.TryAdd(part, FindMatch(part, masterPartsInfo)));
+
+        return masterPartsByPartNumber;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static MasterPart? FindMatch(string partNumber, MasterPartsInfo masterPartsInfo)
+    {
+        var masterPart = FindMatchForPartNumber(partNumber, masterPartsInfo.MasterPartNumbers, masterPartsInfo.StartIndexByPartNumberLength, false);
+        masterPart ??= FindMatchForPartNumber(partNumber, masterPartsInfo.MasterPartNumbersNoHyphens, masterPartsInfo.StartIndexByPartNumberNoHyphensLength, true);
+        masterPart ??= FindMatchInPartNumber(partNumber, masterPartsInfo.MasterPartNumbers, masterPartsInfo.StartIndexByPartNumberLengthOpposite);
 
         return masterPart;
     }

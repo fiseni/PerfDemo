@@ -1,23 +1,14 @@
-﻿using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
-namespace PerfDemo.Services;
+namespace PerfDemo.Processors;
 
-public class Service3
+public class Processor2
 {
-    private readonly ConcurrentDictionary<string, MasterPart?> _masterPartsByPartNumber;
+    private readonly MasterPartsInfo _masterPartsInfo;
 
-    public Service3(MasterPart[] masterParts, Part[] parts)
+    public Processor2(MasterPart[] masterParts)
     {
-        var masterPartsInfo = new MasterPartsInfo(masterParts);
-
-        var distinctParts = parts
-            .Select(x => x.PartNumber.Trim().ToUpper())
-            .Where(x => x.Length > 2)
-            .Distinct()
-            .ToArray();
-
-        _masterPartsByPartNumber = BuildDictionary(distinctParts, masterPartsInfo);
+        _masterPartsInfo = new MasterPartsInfo(masterParts);
     }
 
     public MasterPart? FindMatchedPart(string partNumber)
@@ -27,24 +18,9 @@ public class Service3
 
         partNumber = partNumber.ToUpper();
 
-        return _masterPartsByPartNumber.GetValueOrDefault(partNumber);
-    }
-
-    private static ConcurrentDictionary<string, MasterPart?> BuildDictionary(string[] parts, MasterPartsInfo masterPartsInfo)
-    {
-        var masterPartsByPartNumber = new ConcurrentDictionary<string, MasterPart?>();
-
-        Parallel.ForEach(parts, part => masterPartsByPartNumber.TryAdd(part, FindMatch(part, masterPartsInfo)));
-
-        return masterPartsByPartNumber;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static MasterPart? FindMatch(string partNumber, MasterPartsInfo masterPartsInfo)
-    {
-        var masterPart = FindMatchForPartNumber(partNumber, masterPartsInfo.MasterPartNumbers, masterPartsInfo.StartIndexByPartNumberLength, false);
-        masterPart ??= FindMatchForPartNumber(partNumber, masterPartsInfo.MasterPartNumbersNoHyphens, masterPartsInfo.StartIndexByPartNumberNoHyphensLength, true);
-        masterPart ??= FindMatchInPartNumber(partNumber, masterPartsInfo.MasterPartNumbers, masterPartsInfo.StartIndexByPartNumberLengthOpposite);
+        var masterPart = FindMatchForPartNumber(partNumber, _masterPartsInfo.MasterPartNumbers, _masterPartsInfo.StartIndexByPartNumberLength, false);
+        masterPart ??= FindMatchForPartNumber(partNumber, _masterPartsInfo.MasterPartNumbersNoHyphens, _masterPartsInfo.StartIndexByPartNumberNoHyphensLength, true);
+        masterPart ??= FindMatchInPartNumber(partNumber, _masterPartsInfo.MasterPartNumbers, _masterPartsInfo.StartIndexByPartNumberLengthOpposite);
 
         return masterPart;
     }

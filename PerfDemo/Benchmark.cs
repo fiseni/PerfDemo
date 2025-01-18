@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using PerfDemo.Services;
+using PerfDemo.Processors;
 
 namespace PerfDemo;
 
@@ -27,10 +27,10 @@ public class Benchmark
     }
 
     [Benchmark(Baseline = true)]
-    public void Original()
+    public void Processor1()
     {
         var matchCount = 0;
-        var service = new Service1(_masterParts);
+        var service = new Processor1(_masterParts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
@@ -40,14 +40,14 @@ public class Benchmark
                 matchCount++;
             }
         }
-        Console.WriteLine($"### Found {matchCount:n0} matches!");
+        Console.WriteLine($"### {nameof(Processor1)}. Found {matchCount:n0} matches!");
     }
 
     [Benchmark]
-    public void Option2()
+    public void Processor2()
     {
         var matchCount = 0;
-        var service = new Service2(_masterParts);
+        var service = new Processor2(_masterParts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
@@ -57,14 +57,14 @@ public class Benchmark
                 matchCount++;
             }
         }
-        Console.WriteLine($"### Found {matchCount:n0} matches!");
+        Console.WriteLine($"### {nameof(Processor2)}.  Found {matchCount:n0} matches!");
     }
 
     [Benchmark]
-    public void Option3()
+    public void Processor3()
     {
         var matchCount = 0;
-        var service = new Service3(_masterParts, _parts);
+        var service = new Processor3(_masterParts, _parts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
@@ -74,14 +74,14 @@ public class Benchmark
                 matchCount++;
             }
         }
-        Console.WriteLine($"### Found {matchCount:n0} matches!");
+        Console.WriteLine($"### {nameof(Processor3)}.  Found {matchCount:n0} matches!");
     }
 
     [Benchmark]
-    public void Option4()
+    public void Processor4()
     {
         var matchCount = 0;
-        var service = new Service4(_masterParts, _parts);
+        var service = new Processor4(_masterParts, _parts);
 
         for (var i = 0; i < _parts.Length; i++)
         {
@@ -91,6 +91,6 @@ public class Benchmark
                 matchCount++;
             }
         }
-        Console.WriteLine($"### Found {matchCount:n0} matches!");
+        Console.WriteLine($"### {nameof(Processor4)}.  Found {matchCount:n0} matches!");
     }
 }

@@ -1,10 +1,10 @@
-﻿namespace PerfDemo.Services;
+﻿namespace PerfDemo.Processors;
 
-public class Service1
+public class Processor1
 {
     private readonly MasterPart[] _masterParts;
 
-    public Service1(MasterPart[] masterParts)
+    public Processor1(MasterPart[] masterParts)
     {
         _masterParts = masterParts;
     }

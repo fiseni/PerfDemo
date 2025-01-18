@@ -1,12 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace PerfDemo.Services;
+namespace PerfDemo.Processors;
 
-public class Service4
+public class Processor4
 {
     private readonly Dictionary<string, MasterPart?> _masterPartsByPartNumber;
 
-    public Service4(MasterPart[] masterParts, Part[] parts)
+    public Processor4(MasterPart[] masterParts, Part[] parts)
     {
         var masterPartsInfo = new MasterPartsInfo(masterParts);
         var partsInfo = new PartsInfo(parts);

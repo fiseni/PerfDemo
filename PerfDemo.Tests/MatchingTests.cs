@@ -1,4 +1,4 @@
-﻿using PerfDemo.Services;
+﻿using PerfDemo.Processors;
 
 namespace PerfDemo.Tests;
 
@@ -70,7 +70,7 @@ public class MatchingTests
         // Option 1 (the original code) will fail on many cases since it will return the first match.
         // All other options are improved to return the best match.
 
-        var service = new Service1(_masterParts);
+        var service = new Processor1(_masterParts);
         var result = service.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
@@ -80,7 +80,7 @@ public class MatchingTests
     [MemberData(nameof(GetPartNumbers))]
     public void Option2_Tests(string? expectedMatch, string partNumber)
     {
-        var service = new Service2(_masterParts);
+        var service = new Processor2(_masterParts);
         var result = service.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
@@ -92,7 +92,7 @@ public class MatchingTests
     {
         var partNumbers = _partNumbersSeed.Select(x => new Part(x.PartNumber)).ToArray();
 
-        var service = new Service3(_masterParts, partNumbers);
+        var service = new Processor3(_masterParts, partNumbers);
         var result = service.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
@@ -104,7 +104,7 @@ public class MatchingTests
     {
         var partNumbers = _partNumbersSeed.Select(x => new Part(x.PartNumber)).ToArray();
 
-        var service = new Service4(_masterParts, partNumbers);
+        var service = new Processor4(_masterParts, partNumbers);
         var result = service.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
