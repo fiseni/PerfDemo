@@ -2,8 +2,10 @@
 
 namespace PerfDemo.Processors;
 
-public class Processor4
+public class Processor4 : IProcessor
 {
+    public string Identifier { get; } = nameof(Processor4);
+
     private readonly Dictionary<string, MasterPart?> _masterPartsByPartNumber;
 
     public Processor4(SourceData sourceData)

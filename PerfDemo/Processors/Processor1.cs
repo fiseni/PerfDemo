@@ -1,7 +1,9 @@
 ﻿namespace PerfDemo.Processors;
 
-public class Processor1
+public class Processor1 : IProcessor
 {
+    public string Identifier { get; } = nameof(Processor1);
+
     private readonly MasterPart[] _masterParts;
 
     public Processor1(SourceData sourceData)

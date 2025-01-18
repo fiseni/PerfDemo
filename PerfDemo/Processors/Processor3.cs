@@ -3,8 +3,10 @@ using System.Runtime.CompilerServices;
 
 namespace PerfDemo.Processors;
 
-public class Processor3
+public class Processor3 : IProcessor
 {
+    public string Identifier { get; } = nameof(Processor3);
+
     private readonly ConcurrentDictionary<string, MasterPart?> _masterPartsByPartNumber;
 
     public Processor3(SourceData sourceData)

@@ -1,4 +1,3 @@
 ﻿using BenchmarkDotNet.Running;
-using PerfDemo;
 
-BenchmarkRunner.Run<Benchmark>();
+BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);

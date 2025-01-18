@@ -2,6 +2,11 @@
 
 public class SourceData
 {
+    // BenchmarkDotNet creates a new folder on each run named with an arbitrary GUID.
+    // This is a workaround to get the correct path to the data files. Don't ask :)
+    public static string MasterPartsFilePath = Path.Combine("..", "..", "..", "..", "Data", "masterParts.txt");
+    public static string PartsFilePath = Path.Combine("..", "..", "..", "..", "Data", "parts.txt");
+
     public MasterPart[] MasterParts { get; }
     public Part[] Parts { get; }
 
@@ -10,6 +15,9 @@ public class SourceData
         MasterParts = masterParts;
         Parts = parts;
     }
+
+    public static SourceData LoadForBenchmark()
+        => Load(MasterPartsFilePath, PartsFilePath);
 
     public static SourceData Load(string masterPartsPath, string partsPath)
     {
