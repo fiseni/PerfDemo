@@ -10,13 +10,15 @@
   <ItemGroup>
     <None Remove="Data\import.txt" />
     <None Remove="Data\master-parts.txt" />
+    <None Remove="Data\masterParts.txt" />
+    <None Remove="Data\parts.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Data\import.txt">
+    <Content Include="Data\masterParts.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\master-parts.txt">
+    <Content Include="Data\parts.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

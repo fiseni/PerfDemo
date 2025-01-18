@@ -16,10 +16,10 @@ public class Benchmark
     {
         // BenchmarkDotNet creates a new folder on each run named with an arbitrary GUID.
         // This is a workaround to get the correct path to the data files. Don't ask :)
-        _parts = File.ReadAllLines(Path.Combine("..", "..", "..", "..", "Data", "import.txt"))
+        _parts = File.ReadAllLines(Path.Combine("..", "..", "..", "..", "Data", "parts.txt"))
             .Select(x => new Part(x))
             .ToArray();
-        _masterParts = File.ReadAllLines(Path.Combine("..", "..", "..", "..", "Data", "master-parts.txt"))
+        _masterParts = File.ReadAllLines(Path.Combine("..", "..", "..", "..", "Data", "masterParts.txt"))
             .Select(x => new MasterPart(x))
             .ToArray();
 
