@@ -7,11 +7,11 @@ public class Processor3
 {
     private readonly ConcurrentDictionary<string, MasterPart?> _masterPartsByPartNumber;
 
-    public Processor3(MasterPart[] masterParts, Part[] parts)
+    public Processor3(SourceData sourceData)
     {
-        var masterPartsInfo = new MasterPartsInfo(masterParts);
+        var masterPartsInfo = new MasterPartsInfo(sourceData.MasterParts);
 
-        var distinctParts = parts
+        var distinctParts = sourceData.Parts
             .Select(x => x.PartNumber.Trim().ToUpper())
             .Where(x => x.Length > 2)
             .Distinct()

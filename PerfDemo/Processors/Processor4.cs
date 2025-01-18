@@ -6,10 +6,10 @@ public class Processor4
 {
     private readonly Dictionary<string, MasterPart?> _masterPartsByPartNumber;
 
-    public Processor4(MasterPart[] masterParts, Part[] parts)
+    public Processor4(SourceData sourceData)
     {
-        var masterPartsInfo = new MasterPartsInfo(masterParts);
-        var partsInfo = new PartsInfo(parts);
+        var masterPartsInfo = new MasterPartsInfo(sourceData.MasterParts);
+        var partsInfo = new PartsInfo(sourceData.Parts);
 
         _masterPartsByPartNumber = BuildDictionary(masterPartsInfo, partsInfo);
     }

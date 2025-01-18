@@ -4,9 +4,9 @@ public class Processor1
 {
     private readonly MasterPart[] _masterParts;
 
-    public Processor1(MasterPart[] masterParts)
+    public Processor1(SourceData sourceData)
     {
-        _masterParts = masterParts;
+        _masterParts = sourceData.MasterParts;
     }
 
     public MasterPart? FindMatchedPart(string partNumber)

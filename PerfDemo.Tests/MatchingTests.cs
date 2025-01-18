@@ -28,9 +28,9 @@ public class MatchingTests
         new(""),
     ];
 
-    private sealed record PartNumberSeed(string? ExpectedMatch, string PartNumber);
+    private sealed record TestPart(string? ExpectedMatch, string PartNumber);
 
-    private static readonly PartNumberSeed[] _partNumbersSeed =
+    private static readonly TestPart[] _testParts =
     [
         // expected, partnumber
         new(null, "  "),
@@ -61,7 +61,8 @@ public class MatchingTests
         new("XSSD-DFF", "XSSDDFF"),
     ];
 
-    public static IEnumerable<object?[]> GetPartNumbers() => _partNumbersSeed.Select(x => (new object?[] { x.ExpectedMatch, x.PartNumber }));
+    private static readonly SourceData _sourceData = new SourceData(_masterParts, _testParts.Select(x => new Part(x.PartNumber)).ToArray());
+    public static IEnumerable<object?[]> GetPartNumbers() => _testParts.Select(x => (new object?[] { x.ExpectedMatch, x.PartNumber }));
 
     [Theory]
     [MemberData(nameof(GetPartNumbers))]
@@ -70,8 +71,8 @@ public class MatchingTests
         // Option 1 (the original code) will fail on many cases since it will return the first match.
         // All other options are improved to return the best match.
 
-        var service = new Processor1(_masterParts);
-        var result = service.FindMatchedPart(partNumber);
+        var processor = new Processor1(_sourceData);
+        var result = processor.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
     }
@@ -80,8 +81,8 @@ public class MatchingTests
     [MemberData(nameof(GetPartNumbers))]
     public void Option2_Tests(string? expectedMatch, string partNumber)
     {
-        var service = new Processor2(_masterParts);
-        var result = service.FindMatchedPart(partNumber);
+        var processor = new Processor2(_sourceData);
+        var result = processor.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
     }
@@ -90,10 +91,8 @@ public class MatchingTests
     [MemberData(nameof(GetPartNumbers))]
     public void Option3_Tests(string? expectedMatch, string partNumber)
     {
-        var partNumbers = _partNumbersSeed.Select(x => new Part(x.PartNumber)).ToArray();
-
-        var service = new Processor3(_masterParts, partNumbers);
-        var result = service.FindMatchedPart(partNumber);
+        var processor = new Processor3(_sourceData);
+        var result = processor.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
     }
@@ -102,10 +101,8 @@ public class MatchingTests
     [MemberData(nameof(GetPartNumbers))]
     public void Option4_Tests(string? expectedMatch, string partNumber)
     {
-        var partNumbers = _partNumbersSeed.Select(x => new Part(x.PartNumber)).ToArray();
-
-        var service = new Processor4(_masterParts, partNumbers);
-        var result = service.FindMatchedPart(partNumber);
+        var processor = new Processor4(_sourceData);
+        var result = processor.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
     }

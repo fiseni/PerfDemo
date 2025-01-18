@@ -6,9 +6,9 @@ public class Processor2
 {
     private readonly MasterPartsInfo _masterPartsInfo;
 
-    public Processor2(MasterPart[] masterParts)
+    public Processor2(SourceData sourceData)
     {
-        _masterPartsInfo = new MasterPartsInfo(masterParts);
+        _masterPartsInfo = new MasterPartsInfo(sourceData.MasterParts);
     }
 
     public MasterPart? FindMatchedPart(string partNumber)
