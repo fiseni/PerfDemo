@@ -35,7 +35,7 @@ public class Processor5 : IProcessor
 
     private static Dictionary<string, MasterPart?> BuildDictionary(MasterPartsInfo masterPartsInfo, PartsInfo partsInfo)
     {
-        var masterPartsByPartNumber = new Dictionary<string, MasterPart?>();
+        var masterPartsByPartNumber = new Dictionary<string, MasterPart?>(partsInfo.PartNumbers.Length);
 
         for (var i = 0; i < partsInfo.PartNumbers.Length; i++)
         {
@@ -95,8 +95,8 @@ public class Processor5 : IProcessor
                 .OrderBy(x => x.PartNumberNoHyphens.Length)
                 .ToArray();
 
-            SuffixesByLength = new Dictionary<string, MasterPart>[MAX_STRING_LENGTH];
-            SuffixesByNoHyphensLength = new Dictionary<string, MasterPart>[MAX_STRING_LENGTH];
+            SuffixesByLength = new Dictionary<string, MasterPart>?[MAX_STRING_LENGTH];
+            SuffixesByNoHyphensLength = new Dictionary<string, MasterPart>?[MAX_STRING_LENGTH];
 
             BuildSuffixDictionaries(SuffixesByLength, MasterPartNumbers, false);
             BuildSuffixDictionaries(SuffixesByNoHyphensLength, MasterPartNumbersNoHyphens, true);
@@ -127,7 +127,7 @@ public class Processor5 : IProcessor
                 var startIndex = startIndexesByLength[length];
                 if (startIndex is not null)
                 {
-                    var tempDictionary = new Dictionary<string, MasterPart>();
+                    var tempDictionary = new Dictionary<string, MasterPart>(masterPartNumbers.Length - startIndex.Value);
                     var altLookup = tempDictionary.GetAlternateLookup<ReadOnlySpan<char>>();
                     for (var i = startIndex.Value; i < masterPartNumbers.Length; i++)
                     {
@@ -181,7 +181,7 @@ public class Processor5 : IProcessor
                 var startIndex = startIndexByLength[length];
                 if (startIndex is not null)
                 {
-                    var tempDictionary = new Dictionary<string, List<int>>();
+                    var tempDictionary = new Dictionary<string, List<int>>(partNumbers.Length - startIndex.Value);
                     var altLookup = tempDictionary.GetAlternateLookup<ReadOnlySpan<char>>();
                     for (var i = startIndex.Value; i < partNumbers.Length; i++)
                     {
