@@ -116,6 +116,10 @@ dotnet_naming_rule.public_field_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.public_field_should_be_pascal_case.symbols = public_field
 dotnet_naming_rule.public_field_should_be_pascal_case.style = pascal_case
 
+dotnet_naming_rule.public_constants_should_be_allupper_case.severity = suggestion
+dotnet_naming_rule.public_constants_should_be_allupper_case.symbols = public_constants
+dotnet_naming_rule.public_constants_should_be_allupper_case.style = all_upper_case
+
 # Symbol specifications
 
 dotnet_naming_symbols.interface.applicable_kinds = interface
@@ -129,6 +133,10 @@ dotnet_naming_symbols.private_or_internal_field.required_modifiers =
 dotnet_naming_symbols.public_field.applicable_kinds = field
 dotnet_naming_symbols.public_field.applicable_accessibilities = public
 dotnet_naming_symbols.public_field.required_modifiers = 
+
+dotnet_naming_symbols.public_constants.applicable_kinds = field, local
+dotnet_naming_symbols.public_constants.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.public_constants.required_modifiers = const
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
 dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
@@ -154,6 +162,11 @@ dotnet_naming_style._fieldname.required_prefix = _
 dotnet_naming_style._fieldname.required_suffix = 
 dotnet_naming_style._fieldname.word_separator = 
 dotnet_naming_style._fieldname.capitalization = camel_case
+
+dotnet_naming_style.all_upper_case.required_prefix = 
+dotnet_naming_style.all_upper_case.required_suffix = 
+dotnet_naming_style.all_upper_case.word_separator = 
+dotnet_naming_style.all_upper_case.capitalization = all_upper
 
 # Analyzers
 

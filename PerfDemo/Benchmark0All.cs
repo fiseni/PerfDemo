@@ -1,8 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
-using PerfDemo.Processors;
-
-namespace PerfDemo;
+﻿namespace PerfDemo;
 
 [MemoryDiagnoser]
 [SimpleJob(runStrategy: RunStrategy.ColdStart, launchCount: 0, warmupCount: 0, iterationCount: 1, invocationCount: 1)]
@@ -41,6 +37,13 @@ public class Benchmark0All
     public void Processor4()
     {
         var processor = new Processor4(_sourceData);
+        Benchmark.RunFor(processor, _sourceData);
+    }
+
+    [Benchmark]
+    public void Processor5()
+    {
+        var processor = new Processor5(_sourceData);
         Benchmark.RunFor(processor, _sourceData);
     }
 }

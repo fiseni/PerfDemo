@@ -1,8 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
-using PerfDemo.Processors;
-
-namespace PerfDemo;
+﻿namespace PerfDemo;
 
 [MemoryDiagnoser]
 [SimpleJob(runStrategy: RunStrategy.ColdStart, launchCount: 0, warmupCount: 0, iterationCount: 1, invocationCount: 1)]

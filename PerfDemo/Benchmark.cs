@@ -1,10 +1,8 @@
-﻿using PerfDemo.Processors;
-
-namespace PerfDemo;
+﻿namespace PerfDemo;
 
 public class Benchmark
 {
-    public static void RunFor(IProcessor processor, SourceData sourceData)
+    public static void RunFor(IProcessor processor, SourceData sourceData, bool printResults = false)
     {
         var matchCount = 0;
 
@@ -17,6 +15,10 @@ public class Benchmark
                 matchCount++;
             }
         }
-        Console.WriteLine($"### {processor.Identifier}. Found {matchCount:n0} matches!");
+
+        if (printResults)
+        {
+            Console.WriteLine($"### {processor.Identifier}. Found {matchCount:n0} matches!");
+        }
     }
 }

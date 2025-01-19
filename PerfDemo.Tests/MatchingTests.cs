@@ -66,10 +66,10 @@ public class MatchingTests
 
     [Theory]
     [MemberData(nameof(GetPartNumbers))]
-    public void Option1_Tests(string? expectedMatch, string partNumber)
+    public void Processor1_Tests(string? expectedMatch, string partNumber)
     {
-        // Option 1 (the original code) will fail on many cases since it will return the first match.
-        // All other options are improved to return the best match.
+        // Processor 1 (the original code) will fail on many cases since it will return the first match.
+        // All other implementations are improved to return the best match.
 
         var processor = new Processor1(_sourceData);
         var result = processor.FindMatchedPart(partNumber);
@@ -79,7 +79,7 @@ public class MatchingTests
 
     [Theory]
     [MemberData(nameof(GetPartNumbers))]
-    public void Option2_Tests(string? expectedMatch, string partNumber)
+    public void Processor2_Tests(string? expectedMatch, string partNumber)
     {
         var processor = new Processor2(_sourceData);
         var result = processor.FindMatchedPart(partNumber);
@@ -89,7 +89,7 @@ public class MatchingTests
 
     [Theory]
     [MemberData(nameof(GetPartNumbers))]
-    public void Option3_Tests(string? expectedMatch, string partNumber)
+    public void Processor3_Tests(string? expectedMatch, string partNumber)
     {
         var processor = new Processor3(_sourceData);
         var result = processor.FindMatchedPart(partNumber);
@@ -99,9 +99,19 @@ public class MatchingTests
 
     [Theory]
     [MemberData(nameof(GetPartNumbers))]
-    public void Option4_Tests(string? expectedMatch, string partNumber)
+    public void Processor4_Tests(string? expectedMatch, string partNumber)
     {
         var processor = new Processor4(_sourceData);
+        var result = processor.FindMatchedPart(partNumber);
+
+        Assert.Equal(expectedMatch, result?.PartNumber);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetPartNumbers))]
+    public void Processor5_Tests(string? expectedMatch, string partNumber)
+    {
+        var processor = new Processor5(_sourceData);
         var result = processor.FindMatchedPart(partNumber);
 
         Assert.Equal(expectedMatch, result?.PartNumber);
