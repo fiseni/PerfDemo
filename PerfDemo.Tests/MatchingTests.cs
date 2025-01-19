@@ -4,28 +4,28 @@ namespace PerfDemo.Tests;
 
 public class MatchingTests
 {
-    private static readonly MasterPart[] _masterParts =
+    private static readonly string[] _masterPartNumbers =
     [
-        new("699"),
-        new("Aqwertyuio"),
-        new("QWERTYUIO"),
-        new("zxc"),
-        new("ZXC"),
-        new("xxabcdefghi-jklmno"),
-        new("ABCDEFGHI---------------JKLMNO"),
-        new("cdefghijklmno"),
-        new("CDEFGHIJKLMNO"),
-        new("0000abcdefghijklmnoX"),
-        new("zx"),
-        new("qzp"),
-        new("QZP"),
-        new("AXqwertyuio"),
-        new("AAqwertyuio"),
-        new("SSDDFF"),
-        new("SSD-DFF"),
-        new("XSSD-DFF"),
-        new("z"),
-        new(""),
+        "699",
+        "Aqwertyuio",
+        "QWERTYUIO",
+        "zxc",
+        "ZXC",
+        "xxabcdefghi-jklmno",
+        "ABCDEFGHI---------------JKLMNO",
+        "cdefghijklmno",
+        "CDEFGHIJKLMNO",
+        "0000abcdefghijklmnoX",
+        "zx",
+        "qzp",
+        "QZP",
+        "AXqwertyuio",
+        "AAqwertyuio",
+        "SSDDFF",
+        "SSD-DFF",
+        "XSSD-DFF",
+        "z",
+        "",
     ];
 
     private sealed record TestPart(string? ExpectedMatch, string PartNumber);
@@ -61,7 +61,7 @@ public class MatchingTests
         new("XSSD-DFF", "XSSDDFF"),
     ];
 
-    private static readonly SourceData _sourceData = new SourceData(_masterParts, _testParts.Select(x => new Part(x.PartNumber)).ToArray());
+    private static readonly SourceData _sourceData = SourceData.Load(_masterPartNumbers, _testParts.Select(x => x.PartNumber).ToArray());
     public static IEnumerable<object?[]> GetPartNumbers() => _testParts.Select(x => (new object?[] { x.ExpectedMatch, x.PartNumber }));
 
     [Theory]

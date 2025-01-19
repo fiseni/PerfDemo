@@ -114,7 +114,6 @@ public class Processor3 : IProcessor
         public MasterPartsInfo(MasterPart[] masterParts)
         {
             MasterPartNumbers = masterParts
-                .Where(x => x.PartNumber.Length > 2)
                 .OrderBy(x => x.PartNumber.Length)
                 .DistinctBy(x => x.PartNumber)
                 .ToArray();

@@ -19,13 +19,21 @@ public class SourceData
     public static SourceData LoadForBenchmark()
         => Load(MasterPartsFilePath, PartsFilePath);
 
-    public static SourceData Load(string masterPartsPath, string partsPath)
+    public static SourceData Load(string masterPartsFilePath, string partsFilePath)
     {
-        var masterParts = File.ReadAllLines(masterPartsPath)
+        var masterPartNumbers = File.ReadAllLines(masterPartsFilePath);
+        var partNumbers = File.ReadAllLines(partsFilePath);
+        return Load(masterPartNumbers, partNumbers);
+    }
+
+    public static SourceData Load(string[] masterPartNumbers, string[] partNumbers)
+    {
+        var masterParts = masterPartNumbers
             .Select(x => new MasterPart(x))
+            .Where(x => x.PartNumber.Length > 2)
             .ToArray();
 
-        var parts = File.ReadAllLines(partsPath)
+        var parts = partNumbers
             .Select(x => new Part(x))
             .ToArray();
 

@@ -16,34 +16,34 @@ public class Benchmark0All
     public void Processor1()
     {
         var processor = new Processor1(_sourceData);
-        Benchmark.RunFor(processor, _sourceData);
+        Benchmark.RunFor(processor, _sourceData, true);
     }
 
     [Benchmark]
     public void Processor2()
     {
         var processor = new Processor2(_sourceData);
-        Benchmark.RunFor(processor, _sourceData);
+        Benchmark.RunFor(processor, _sourceData, true);
     }
 
     [Benchmark]
     public void Processor3()
     {
         var processor = new Processor3(_sourceData);
-        Benchmark.RunFor(processor, _sourceData);
+        Benchmark.RunFor(processor, _sourceData, true);
     }
 
     [Benchmark]
     public void Processor4()
     {
         var processor = new Processor4(_sourceData);
-        Benchmark.RunFor(processor, _sourceData);
+        Benchmark.RunFor(processor, _sourceData, true);
     }
 
     [Benchmark]
     public void Processor5()
     {
         var processor = new Processor5(_sourceData);
-        Benchmark.RunFor(processor, _sourceData);
+        Benchmark.RunFor(processor, _sourceData, true);
     }
 }
