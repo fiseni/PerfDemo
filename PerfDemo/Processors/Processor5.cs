@@ -57,9 +57,9 @@ public class Processor5 : IProcessor
             }
         }
 
-        for (var i = masterPartsInfo.MasterPartNumbers.Length - 1; i >= 0; i--)
+        for (var i = masterPartsInfo.MasterParts.Length - 1; i >= 0; i--)
         {
-            var masterPart = masterPartsInfo.MasterPartNumbers[i];
+            var masterPart = masterPartsInfo.MasterParts[i];
 
             var partsBySuffix = partsInfo.SuffixesByLength[masterPart.PartNumber.Length];
             var originalPartIndices = partsBySuffix?.GetValueOrDefault(masterPart.PartNumber);
@@ -78,18 +78,18 @@ public class Processor5 : IProcessor
 
     private sealed class MasterPartsInfo
     {
-        public MasterPart[] MasterPartNumbers { get; }
-        public MasterPart[] MasterPartNumbersNoHyphens { get; }
+        public MasterPart[] MasterParts { get; }
+        public MasterPart[] MasterPartsNoHyphens { get; }
         public Dictionary<string, MasterPart>?[] SuffixesByLength { get; }
         public Dictionary<string, MasterPart>?[] SuffixesByNoHyphensLength { get; }
 
         public MasterPartsInfo(MasterPart[] masterParts)
         {
-            MasterPartNumbers = masterParts
+            MasterParts = masterParts
                 .OrderBy(x => x.PartNumber.Length)
                 .ToArray();
 
-            MasterPartNumbersNoHyphens = masterParts
+            MasterPartsNoHyphens = masterParts
                 .Where(x => x.PartNumberNoHyphens.Length > 2 && x.PartNumber.Contains('-'))
                 .OrderBy(x => x.PartNumberNoHyphens.Length)
                 .ToArray();
@@ -97,11 +97,11 @@ public class Processor5 : IProcessor
             SuffixesByLength = new Dictionary<string, MasterPart>?[MAX_STRING_LENGTH];
             SuffixesByNoHyphensLength = new Dictionary<string, MasterPart>?[MAX_STRING_LENGTH];
 
-            BuildSuffixDictionaries(SuffixesByLength, MasterPartNumbers, false);
-            BuildSuffixDictionaries(SuffixesByNoHyphensLength, MasterPartNumbersNoHyphens, true);
+            BuildSuffixDictionaries(SuffixesByLength, MasterParts, false);
+            BuildSuffixDictionaries(SuffixesByNoHyphensLength, MasterPartsNoHyphens, true);
         }
 
-        private static void BuildSuffixDictionaries(Dictionary<string, MasterPart>?[] suffixesByLength, MasterPart[] masterPartNumbers, bool useNoHyphen)
+        private static void BuildSuffixDictionaries(Dictionary<string, MasterPart>?[] suffixesByLength, MasterPart[] masterParts, bool useNoHyphen)
         {
             // Create and populate start indices.
             var startIndexesByLength = new int?[MAX_STRING_LENGTH];
@@ -109,11 +109,11 @@ public class Processor5 : IProcessor
             {
                 startIndexesByLength[i] = null;
             }
-            for (var i = 0; i < masterPartNumbers.Length; i++)
+            for (var i = 0; i < masterParts.Length; i++)
             {
                 var length = useNoHyphen
-                    ? masterPartNumbers[i].PartNumberNoHyphens.Length
-                    : masterPartNumbers[i].PartNumber.Length;
+                    ? masterParts[i].PartNumberNoHyphens.Length
+                    : masterParts[i].PartNumber.Length;
 
                 if (startIndexesByLength[length] is null)
                     startIndexesByLength[length] = i;
@@ -126,14 +126,14 @@ public class Processor5 : IProcessor
                 var startIndex = startIndexesByLength[length];
                 if (startIndex is not null)
                 {
-                    var tempDictionary = new Dictionary<string, MasterPart>(masterPartNumbers.Length - startIndex.Value);
+                    var tempDictionary = new Dictionary<string, MasterPart>(masterParts.Length - startIndex.Value);
                     var altLookup = tempDictionary.GetAlternateLookup<ReadOnlySpan<char>>();
-                    for (var i = startIndex.Value; i < masterPartNumbers.Length; i++)
+                    for (var i = startIndex.Value; i < masterParts.Length; i++)
                     {
                         var suffix = useNoHyphen
-                            ? masterPartNumbers[i].PartNumberNoHyphens.AsSpan()[^length..]
-                            : masterPartNumbers[i].PartNumber.AsSpan()[^length..];
-                        altLookup.TryAdd(suffix, masterPartNumbers[i]);
+                            ? masterParts[i].PartNumberNoHyphens.AsSpan()[^length..]
+                            : masterParts[i].PartNumber.AsSpan()[^length..];
+                        altLookup.TryAdd(suffix, masterParts[i]);
                     }
                     suffixesByLength[length] = tempDictionary;
                 }
