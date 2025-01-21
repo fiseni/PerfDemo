@@ -1,19 +1,21 @@
-﻿namespace PerfDemo;
+﻿using System.Diagnostics;
 
-//[DebuggerDisplay("{System.Text.Encoding.ASCII.GetString(PartNumber.Span)} | {System.Text.Encoding.ASCII.GetString(PartNumberNoHyphens.Span)}")]
-public struct MasterPartX
+namespace PerfDemo;
+
+[DebuggerDisplay("{System.Text.Encoding.ASCII.GetString(PartNumber.Span)} | {System.Text.Encoding.ASCII.GetString(PartNumberNoHyphens.Span)}")]
+public struct MasterPart6
 {
     public Memory<byte> PartNumber;
     public Memory<byte> PartNumberNoHyphens;
 }
 
-//[DebuggerDisplay("{System.Text.Encoding.ASCII.GetString(PartNumber.Span)}")]
-public struct PartX
+[DebuggerDisplay("{System.Text.Encoding.ASCII.GetString(PartNumber.Span)}")]
+public struct Part6
 {
     public Memory<byte> PartNumber;
 }
 
-public class SourceDataX
+public class SourceData6
 {
     // BenchmarkDotNet creates a new folder on each run named with an arbitrary GUID.
     // This is a workaround to get the correct path to the data files. Don't ask :)
@@ -24,24 +26,24 @@ public class SourceDataX
     public const byte CR = 13;
     public const byte DASH = 45;
 
-    public MasterPartX[] MasterParts = default!;
-    public PartX[] Parts = default!;
+    public MasterPart6[] MasterParts = default!;
+    public Part6[] Parts = default!;
 
-    public static SourceDataX LoadForBenchmark()
+    public static SourceData6 LoadForBenchmark()
         => Load(MasterPartsFilePath, PartsFilePath);
 
-    public static SourceDataX Load(string masterPartsFilePath, string partsFilePath)
+    public static SourceData6 Load(string masterPartsFilePath, string partsFilePath)
     {
         var masterParts = BuildMasterParts(masterPartsFilePath);
         var parts = BuildParts(partsFilePath);
-        return new SourceDataX
+        return new SourceData6
         {
             MasterParts = masterParts,
             Parts = parts
         };
     }
 
-    private static MasterPartX[] BuildMasterParts(string masterPartsFilePath)
+    private static MasterPart6[] BuildMasterParts(string masterPartsFilePath)
     {
         var fileSize = new FileInfo(masterPartsFilePath).Length;
         var content = File.ReadAllBytes(masterPartsFilePath);
@@ -58,7 +60,7 @@ public class SourceDataX
             }
         }
 
-        var masterParts = new MasterPartX[lines];
+        var masterParts = new MasterPart6[lines];
 
         var masterPartsIndex = 0;
         var startStringIndex = 0;
@@ -86,18 +88,18 @@ public class SourceDataX
                 if (!trimmedLine.IsEmpty)
                 {
                     masterParts[masterPartsIndex].PartNumber = trimmedLine;
-                    masterPartsIndex++;
-                    startStringIndex = i + 1;
                     if (dashCount > 0)
                     {
                         var dashRemoved = RemoveDashes(trimmedLine, blockNoHyphens.AsMemory().Slice(masterPartsNoHyphensIndex, trimmedLine.Length));
-                        masterParts[masterPartsIndex - 1].PartNumberNoHyphens = dashRemoved;
+                        masterParts[masterPartsIndex].PartNumberNoHyphens = dashRemoved;
                         masterPartsNoHyphensIndex += dashRemoved.Length;
                     }
                     else
                     {
-                        masterParts[masterPartsIndex - 1].PartNumberNoHyphens = masterParts[masterPartsIndex - 1].PartNumber;
+                        masterParts[masterPartsIndex].PartNumberNoHyphens = masterParts[masterPartsIndex].PartNumber;
                     }
+                    masterPartsIndex++;
+                    startStringIndex = i + 1;
                 }
                 dashCount = 0;
             }
@@ -131,7 +133,7 @@ public class SourceDataX
         return x;
     }
 
-    private static PartX[] BuildParts(string partsFilePath)
+    private static Part6[] BuildParts(string partsFilePath)
     {
         var fileSize = new FileInfo(partsFilePath).Length;
         var content = File.ReadAllBytes(partsFilePath);
@@ -147,7 +149,7 @@ public class SourceDataX
             }
         }
 
-        var parts = new PartX[lines];
+        var parts = new Part6[lines];
 
         var partsIndex = 0;
         var startStringIndex = 0;

@@ -1,5 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PerfDemo.Processors;
@@ -10,11 +13,11 @@ public class Processor6
 
     private const int MIN_STRING_LENGTH = 3;
     private const int MAX_STRING_LENGTH = 50;
-    private static readonly MyComparer _myComparer = new MyComparer();
+    private static readonly MemoryComparer _myComparer = new MemoryComparer();
 
-    private readonly Dictionary<Memory<byte>, MasterPartX?> _masterPartsByPartNumber;
+    private readonly Dictionary<Memory<byte>, MasterPart6?> _masterPartsByPartNumber;
 
-    public Processor6(SourceDataX sourceData)
+    public Processor6(SourceData6 sourceData)
     {
         var masterPartsInfo = new MasterPartsInfo(sourceData.MasterParts);
         var partsInfo = new PartsInfo(sourceData.Parts);
@@ -22,7 +25,7 @@ public class Processor6
         _masterPartsByPartNumber = BuildDictionary(masterPartsInfo, partsInfo);
     }
 
-    public MasterPartX? FindMatchedPart(Memory<byte> partNumber)
+    public MasterPart6? FindMatchedPart(Memory<byte> partNumber)
     {
         if (partNumber.Length < MIN_STRING_LENGTH) return null;
 
@@ -30,9 +33,9 @@ public class Processor6
         return match;
     }
 
-    private static Dictionary<Memory<byte>, MasterPartX?> BuildDictionary(MasterPartsInfo masterPartsInfo, PartsInfo partsInfo)
+    private static Dictionary<Memory<byte>, MasterPart6?> BuildDictionary(MasterPartsInfo masterPartsInfo, PartsInfo partsInfo)
     {
-        var masterPartsByPartNumber = new Dictionary<Memory<byte>, MasterPartX?>(partsInfo.Parts.Length, _myComparer);
+        var masterPartsByPartNumber = new Dictionary<Memory<byte>, MasterPart6?>(partsInfo.Parts.Length, _myComparer);
 
         for (var i = 0; i < partsInfo.Parts.Length; i++)
         {
@@ -74,12 +77,12 @@ public class Processor6
 
     private sealed class MasterPartsInfo
     {
-        public MasterPartX[] MasterParts { get; }
-        public MasterPartX[] MasterPartsNoHyphens { get; }
-        public Dictionary<Memory<byte>, MasterPartX>?[] SuffixesByLength { get; }
-        public Dictionary<Memory<byte>, MasterPartX>?[] SuffixesByNoHyphensLength { get; }
+        public MasterPart6[] MasterParts { get; }
+        public MasterPart6[] MasterPartsNoHyphens { get; }
+        public Dictionary<Memory<byte>, MasterPart6>?[] SuffixesByLength { get; }
+        public Dictionary<Memory<byte>, MasterPart6>?[] SuffixesByNoHyphensLength { get; }
 
-        public MasterPartsInfo(MasterPartX[] masterParts)
+        public MasterPartsInfo(MasterPart6[] masterParts)
         {
             MasterParts = masterParts
                 .OrderBy(x => x.PartNumber.Length)
@@ -90,14 +93,14 @@ public class Processor6
                 .OrderBy(x => x.PartNumberNoHyphens.Length)
                 .ToArray();
 
-            SuffixesByLength = new Dictionary<Memory<byte>, MasterPartX>?[MAX_STRING_LENGTH];
-            SuffixesByNoHyphensLength = new Dictionary<Memory<byte>, MasterPartX>?[MAX_STRING_LENGTH];
+            SuffixesByLength = new Dictionary<Memory<byte>, MasterPart6>?[MAX_STRING_LENGTH];
+            SuffixesByNoHyphensLength = new Dictionary<Memory<byte>, MasterPart6>?[MAX_STRING_LENGTH];
 
             BuildSuffixDictionaries(SuffixesByLength, MasterParts, false);
             BuildSuffixDictionaries(SuffixesByNoHyphensLength, MasterPartsNoHyphens, true);
         }
 
-        private static void BuildSuffixDictionaries(Dictionary<Memory<byte>, MasterPartX>?[] suffixesByLength, MasterPartX[] masterParts, bool useNoHyphen)
+        private static void BuildSuffixDictionaries(Dictionary<Memory<byte>, MasterPart6>?[] suffixesByLength, MasterPart6[] masterParts, bool useNoHyphen)
         {
             // Create and populate start indices.
             var startIndexesByLength = new int?[MAX_STRING_LENGTH];
@@ -122,7 +125,7 @@ public class Processor6
                 var startIndex = startIndexesByLength[length];
                 if (startIndex is not null)
                 {
-                    var tempDictionary = new Dictionary<Memory<byte>, MasterPartX>(masterParts.Length - startIndex.Value, _myComparer);
+                    var tempDictionary = new Dictionary<Memory<byte>, MasterPart6>(masterParts.Length - startIndex.Value, _myComparer);
                     for (var i = startIndex.Value; i < masterParts.Length; i++)
                     {
                         var suffix = useNoHyphen
@@ -138,10 +141,10 @@ public class Processor6
 
     private sealed class PartsInfo
     {
-        public PartX[] Parts { get; }
+        public Part6[] Parts { get; }
         public Dictionary<Memory<byte>, List<int>>?[] SuffixesByLength { get; }
 
-        public PartsInfo(PartX[] parts)
+        public PartsInfo(Part6[] parts)
         {
             Parts = parts
                 //.Select(x => x.PartNumber.Trim().ToUpper())
@@ -153,7 +156,7 @@ public class Processor6
             BuildSuffixDictionaries(SuffixesByLength, Parts);
         }
 
-        private static void BuildSuffixDictionaries(Dictionary<Memory<byte>, List<int>>?[] suffixesByLength, PartX[] parts)
+        private static void BuildSuffixDictionaries(Dictionary<Memory<byte>, List<int>>?[] suffixesByLength, Part6[] parts)
         {
             // Create and populate start indices.
             var startIndexByLength = new int?[MAX_STRING_LENGTH];
@@ -211,7 +214,7 @@ public class Processor6
         }
     }
 
-    public class MyComparer : IEqualityComparer<Memory<byte>>
+    public class MemoryComparer : IEqualityComparer<Memory<byte>>
     {
         public bool Equals(Memory<byte> x, Memory<byte> y)
         {
@@ -233,9 +236,12 @@ public class Processor6
 
         public int GetHashCode([DisallowNull] Memory<byte> obj)
         {
-            var x = Encoding.UTF8.GetString(obj.Span);
-
-            return x.GetHashCode();
+            int hash = 16777619;
+            for (int i = 0; i < obj.Length; i++)
+            {
+                hash = (hash * 31) ^ obj.Span[i];
+            }
+            return hash;
         }
     }
 
