@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace PerfDemo.Processors;
 
@@ -10,9 +11,10 @@ public class Processor6
 
     private const int MIN_STRING_LENGTH = 3;
     private const int MAX_STRING_LENGTH = 50;
-    private static readonly MemoryComparer _myComparer = new();
+    private static readonly MemoryComparer _memoryComparer = new();
 
     private readonly Dictionary<Memory<byte>, MasterPart6?> _masterPartsByPartNumber;
+    private readonly Dictionary<Memory<byte>, MasterPart6?>.AlternateLookup<ReadOnlySpan<byte>> _masterPartsByPartNumberAltLookup;
 
     public Processor6(SourceData6 sourceData)
     {
@@ -20,19 +22,23 @@ public class Processor6
         var partsInfo = new PartsInfo(sourceData.Parts);
 
         _masterPartsByPartNumber = BuildDictionary(masterPartsInfo, partsInfo);
+        _masterPartsByPartNumberAltLookup = _masterPartsByPartNumber.GetAlternateLookup<ReadOnlySpan<byte>>();
     }
 
     public MasterPart6? FindMatchedPart(Memory<byte> partNumber)
     {
-        if (partNumber.Length < MIN_STRING_LENGTH) return null;
+        Span<byte> buffer = stackalloc byte[partNumber.Length];
+        var trimmed = SourceData6.ToUpperTrim(partNumber, buffer);
 
-        _masterPartsByPartNumber.TryGetValue(partNumber, out var match);
+        if (trimmed.Length < MIN_STRING_LENGTH) return null;
+
+        _masterPartsByPartNumberAltLookup.TryGetValue(trimmed, out var match);
         return match;
     }
 
     private static Dictionary<Memory<byte>, MasterPart6?> BuildDictionary(MasterPartsInfo masterPartsInfo, PartsInfo partsInfo)
     {
-        var masterPartsByPartNumber = new Dictionary<Memory<byte>, MasterPart6?>(partsInfo.Parts.Length, _myComparer);
+        var masterPartsByPartNumber = new Dictionary<Memory<byte>, MasterPart6?>(partsInfo.Parts.Length, _memoryComparer);
 
         for (var i = 0; i < partsInfo.Parts.Length; i++)
         {
@@ -122,7 +128,7 @@ public class Processor6
                 var startIndex = startIndexesByLength[length];
                 if (startIndex is not null)
                 {
-                    var tempDictionary = new Dictionary<Memory<byte>, MasterPart6>(masterParts.Length - startIndex.Value, _myComparer);
+                    var tempDictionary = new Dictionary<Memory<byte>, MasterPart6>(masterParts.Length - startIndex.Value, _memoryComparer);
                     for (var i = startIndex.Value; i < masterParts.Length; i++)
                     {
                         var suffix = useNoHyphen
@@ -143,10 +149,31 @@ public class Processor6
 
         public PartsInfo(Part6[] parts)
         {
-            Parts = parts
-                .Where(x => x.PartNumber.Length > 2)
-                .OrderBy(x => x.PartNumber.Length)
-                .ToArray();
+            // Allocate block for all strings so they're in a contiguous memory;
+            var block = new byte[parts.Length * MAX_STRING_LENGTH];
+            var newParts = new Part6[parts.Length];
+            for (int i = 0; i < newParts.Length; i++)
+            {
+                newParts[i] = new Part6();
+            }
+
+            // Populate Parts
+            var blockIndex = 0;
+            var k = 0;
+            for (int i = 0; i < parts.Length; i++)
+            {
+                var partNumber = parts[i].PartNumber;
+                var trimmed = SourceData6.ToUpperTrim(partNumber, block.AsMemory().Slice(blockIndex, partNumber.Length));
+                if (trimmed.Length > 2)
+                {
+                    newParts[k].PartNumber = trimmed;
+                    k++;
+                    blockIndex += trimmed.Length;
+                }
+            }
+
+            Array.Sort(newParts, (x, y) => x.PartNumber.Length.CompareTo(y.PartNumber.Length));
+            Parts = newParts;
 
             SuffixesByLength = new Dictionary<Memory<byte>, List<int>>?[MAX_STRING_LENGTH];
             BuildSuffixDictionaries(SuffixesByLength, Parts);
@@ -174,7 +201,7 @@ public class Processor6
                 var startIndex = startIndexByLength[length];
                 if (startIndex is not null)
                 {
-                    var tempDictionary = new Dictionary<Memory<byte>, List<int>>(parts.Length - startIndex.Value, _myComparer);
+                    var tempDictionary = new Dictionary<Memory<byte>, List<int>>(parts.Length - startIndex.Value, _memoryComparer);
                     for (var i = startIndex.Value; i < parts.Length; i++)
                     {
                         var suffix = parts[i].PartNumber[^length..];
@@ -210,8 +237,12 @@ public class Processor6
         }
     }
 
-    public class MemoryComparer : IEqualityComparer<Memory<byte>>
+    public class MemoryComparer : IEqualityComparer<Memory<byte>>, IAlternateEqualityComparer<ReadOnlySpan<byte>, Memory<byte>>
     {
+        // In our case we will never add using ReadOnlySpan<byte>
+        public Memory<byte> Create(ReadOnlySpan<byte> alternate)
+            => throw new NotImplementedException();
+
         public bool Equals(Memory<byte> x, Memory<byte> y)
         {
             if (x.Length != y.Length)
@@ -230,12 +261,40 @@ public class Processor6
             return true;
         }
 
+        public bool Equals(ReadOnlySpan<byte> alternate, Memory<byte> other)
+        {
+            if (alternate.Length != other.Span.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < alternate.Length; i++)
+            {
+                if (alternate[i] != other.Span[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public int GetHashCode([DisallowNull] Memory<byte> obj)
         {
             int hash = 16777619;
             for (int i = 0; i < obj.Length; i++)
             {
                 hash = (hash * 31) ^ obj.Span[i];
+            }
+            return hash;
+        }
+
+        public int GetHashCode(ReadOnlySpan<byte> alternate)
+        {
+            int hash = 16777619;
+            for (int i = 0; i < alternate.Length; i++)
+            {
+                hash = (hash * 31) ^ alternate[i];
             }
             return hash;
         }
@@ -353,49 +412,14 @@ public class SourceData6
 
     private static Part6[] BuildParts(string partsFilePath)
     {
-        var fileSize = new FileInfo(partsFilePath).Length;
-        var content = File.ReadAllBytes(partsFilePath);
-        byte[] block = new byte[fileSize];
-        content.CopyTo(block, 0);
-
-        var lines = 0;
-        for (int i = 0; i < block.Length; i++)
+        var content = File.ReadAllLines(partsFilePath);
+        var parts = new Part6[content.Length];
+        for (int i = 0; i < content.Length; i++)
         {
-            if (block[i] == LF)
+            parts[i] = new Part6
             {
-                lines++;
-            }
-        }
-
-        var parts = new Part6[lines];
-        for (int i = 0; i < lines; i++)
-        {
-            parts[i] = new Part6();
-        }
-
-        var partsIndex = 0;
-        var startStringIndex = 0;
-        for (int i = 0; i < block.Length; i++)
-        {
-            if (block[i] == LF)
-            {
-                Memory<byte> line;
-                if (i > 0 && block[i - 1] == CR)
-                {
-                    line = block.AsMemory()[startStringIndex..(i - 1)];
-                }
-                else
-                {
-                    line = block.AsMemory()[startStringIndex..i];
-                }
-                var trimmedLine = ToUpperTrimInPlace(line);
-                if (!trimmedLine.IsEmpty)
-                {
-                    parts[partsIndex].PartNumber = trimmedLine;
-                    partsIndex++;
-                    startStringIndex = i + 1;
-                }
-            }
+                PartNumber = Encoding.ASCII.GetBytes(content[i])
+            };
         }
 
         return parts;
@@ -431,6 +455,16 @@ public class SourceData6
         for (int i = 0; i < partNumber.Length; i++)
         {
             buffer.Span[i] = (byte)char.ToUpper((char)partNumber.Span[i]);
+        }
+        var output = buffer.Trim((byte)' ');
+        return output;
+    }
+
+    public static Span<byte> ToUpperTrim(Memory<byte> partNumber, Span<byte> buffer)
+    {
+        for (int i = 0; i < partNumber.Length; i++)
+        {
+            buffer[i] = (byte)char.ToUpper((char)partNumber.Span[i]);
         }
         var output = buffer.Trim((byte)' ');
         return output;
