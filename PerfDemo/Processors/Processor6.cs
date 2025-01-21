@@ -9,8 +9,8 @@ public class Processor6
 {
     public string Identifier { get; } = nameof(Processor6);
 
-    private const int MIN_STRING_LENGTH = 3;
-    private const int MAX_STRING_LENGTH = 50;
+    public const int MIN_STRING_LENGTH = 3;
+    public const int MAX_STRING_LENGTH = 50;
     private static readonly MemoryComparer _memoryComparer = new();
 
     private readonly Dictionary<Memory<byte>, MasterPart6?> _masterPartsByPartNumber;
@@ -350,12 +350,18 @@ public class SourceData6
         byte[] blockNoHyphens = new byte[fileSize];
 
         var lines = 0;
-        for (int i = 0; i < block.Length; i++)
+        for (int blockIndex = 0; blockIndex < block.Length; blockIndex++)
         {
-            if (block[i] == LF)
+            if (block[blockIndex] == LF)
             {
                 lines++;
             }
+        }
+
+        // Handle the case where the last line might not end with a newline
+        if (block.Length > 0 && block[^1] != LF)
+        {
+            lines++;
         }
 
         var masterParts = new MasterPart6[lines];
@@ -366,48 +372,60 @@ public class SourceData6
 
         var masterPartsIndex = 0;
         var startStringIndex = 0;
-        var masterPartsNoHyphensIndex = 0;
+        var blockIndexNoHyphens = 0;
         int dashCount = 0;
-        for (int i = 0; i < block.Length; i++)
+        for (int blockIndex = 0; blockIndex < block.Length; blockIndex++)
         {
-            if (block[i] == DASH)
+            if (block[blockIndex] == DASH)
             {
                 dashCount++;
             }
-            if (block[i] == LF)
+            if (block[blockIndex] == LF)
             {
-                Memory<byte> line;
-                if (i > 0 && block[i - 1] == CR)
+                if (PopulateMasterPart(block, blockNoHyphens, masterParts[masterPartsIndex], startStringIndex, ref blockIndexNoHyphens, blockIndex, dashCount))
                 {
-                    line = block.AsMemory()[startStringIndex..(i - 1)];
-                }
-                else
-                {
-                    line = block.AsMemory()[startStringIndex..i];
-                }
-                var trimmedLine = ToUpperTrimInPlace(line);
-
-                if (!trimmedLine.IsEmpty)
-                {
-                    masterParts[masterPartsIndex].PartNumber = trimmedLine;
-                    if (dashCount > 0)
-                    {
-                        var dashRemoved = RemoveDashes(trimmedLine, blockNoHyphens.AsMemory().Slice(masterPartsNoHyphensIndex, trimmedLine.Length));
-                        masterParts[masterPartsIndex].PartNumberNoHyphens = dashRemoved;
-                        masterPartsNoHyphensIndex += dashRemoved.Length;
-                    }
-                    else
-                    {
-                        masterParts[masterPartsIndex].PartNumberNoHyphens = masterParts[masterPartsIndex].PartNumber;
-                    }
                     masterPartsIndex++;
-                    startStringIndex = i + 1;
                 }
+                startStringIndex = blockIndex + 1;
                 dashCount = 0;
             }
         }
 
+        // Handle the last line if it doesn't end with a newline
+        if (startStringIndex < block.Length)
+        {
+            PopulateMasterPart(block, blockNoHyphens, masterParts[masterPartsIndex], startStringIndex, ref blockIndexNoHyphens, block.Length, dashCount);
+        }
+
         return masterParts;
+    }
+
+    private static bool PopulateMasterPart(byte[] block, byte[] blockNoHyphens, MasterPart6 masterPart, int startStringIndex, ref int blockIndexNoHyphens, int blockIndex, int dashCount)
+    {
+        Memory<byte> line = blockIndex > 0 && block[blockIndex - 1] == CR
+            ? block.AsMemory()[startStringIndex..(blockIndex - 1)]
+            : block.AsMemory()[startStringIndex..blockIndex];
+
+        var trimmedLine = ToUpperTrimInPlace(line);
+        if (trimmedLine.Length < Processor6.MIN_STRING_LENGTH)
+        {
+            return false;
+        }
+
+        masterPart.PartNumber = trimmedLine;
+
+        if (dashCount > 0)
+        {
+            var partNumberNoHyphens = RemoveDashes(trimmedLine, blockNoHyphens.AsMemory().Slice(blockIndexNoHyphens, trimmedLine.Length));
+            masterPart.PartNumberNoHyphens = partNumberNoHyphens;
+            blockIndexNoHyphens += partNumberNoHyphens.Length;
+        }
+        else
+        {
+            masterPart.PartNumberNoHyphens = masterPart.PartNumber;
+        }
+
+        return true;
     }
 
     private static Part6[] BuildParts(string partsFilePath)
