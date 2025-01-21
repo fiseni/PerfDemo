@@ -1,9 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace PerfDemo.Processors;
 
@@ -13,7 +10,7 @@ public class Processor6
 
     private const int MIN_STRING_LENGTH = 3;
     private const int MAX_STRING_LENGTH = 50;
-    private static readonly MemoryComparer _myComparer = new MemoryComparer();
+    private static readonly MemoryComparer _myComparer = new();
 
     private readonly Dictionary<Memory<byte>, MasterPart6?> _masterPartsByPartNumber;
 
@@ -147,7 +144,6 @@ public class Processor6
         public PartsInfo(Part6[] parts)
         {
             Parts = parts
-                //.Select(x => x.PartNumber.Trim().ToUpper())
                 .Where(x => x.PartNumber.Length > 2)
                 .OrderBy(x => x.PartNumber.Length)
                 .ToArray();
@@ -244,5 +240,199 @@ public class Processor6
             return hash;
         }
     }
+}
 
+[DebuggerDisplay("{System.Text.Encoding.ASCII.GetString(PartNumber.Span)} | {System.Text.Encoding.ASCII.GetString(PartNumberNoHyphens.Span)}")]
+public class MasterPart6
+{
+    public Memory<byte> PartNumber;
+    public Memory<byte> PartNumberNoHyphens;
+}
+
+[DebuggerDisplay("{System.Text.Encoding.ASCII.GetString(PartNumber.Span)}")]
+public class Part6
+{
+    public Memory<byte> PartNumber;
+}
+public class SourceData6
+{
+    // BenchmarkDotNet creates a new folder on each run named with an arbitrary GUID.
+    // This is a workaround to get the correct path to the data files. Don't ask :)
+    public static string MasterPartsFilePath = Path.Combine("..", "..", "..", "..", "Data", "masterParts.txt");
+    public static string PartsFilePath = Path.Combine("..", "..", "..", "..", "Data", "parts.txt");
+
+    public const byte LF = 10;
+    public const byte CR = 13;
+    public const byte DASH = 45;
+
+    public MasterPart6[] MasterParts = default!;
+    public Part6[] Parts = default!;
+
+    public static SourceData6 LoadForBenchmark()
+        => Load(MasterPartsFilePath, PartsFilePath);
+
+    public static SourceData6 Load(string masterPartsFilePath, string partsFilePath)
+    {
+        var masterParts = BuildMasterParts(masterPartsFilePath);
+        var parts = BuildParts(partsFilePath);
+        return new SourceData6
+        {
+            MasterParts = masterParts,
+            Parts = parts
+        };
+    }
+
+    private static MasterPart6[] BuildMasterParts(string masterPartsFilePath)
+    {
+        var fileSize = new FileInfo(masterPartsFilePath).Length;
+        var content = File.ReadAllBytes(masterPartsFilePath);
+        byte[] block = new byte[fileSize];
+        content.CopyTo(block, 0);
+        byte[] blockNoHyphens = new byte[fileSize];
+
+        var lines = 0;
+        for (int i = 0; i < block.Length; i++)
+        {
+            if (block[i] == LF)
+            {
+                lines++;
+            }
+        }
+
+        var masterParts = new MasterPart6[lines];
+        for (int i = 0; i < lines; i++)
+        {
+            masterParts[i] = new MasterPart6();
+        }
+
+        var masterPartsIndex = 0;
+        var startStringIndex = 0;
+        var masterPartsNoHyphensIndex = 0;
+        int dashCount = 0;
+        for (int i = 0; i < block.Length; i++)
+        {
+            if (block[i] == DASH)
+            {
+                dashCount++;
+            }
+            if (block[i] == LF)
+            {
+                Memory<byte> line;
+                if (i > 0 && block[i - 1] == CR)
+                {
+                    line = block.AsMemory()[startStringIndex..(i - 1)];
+                }
+                else
+                {
+                    line = block.AsMemory()[startStringIndex..i];
+                }
+                var trimmedLine = ToUpperTrimInPlace(line);
+
+                if (!trimmedLine.IsEmpty)
+                {
+                    masterParts[masterPartsIndex].PartNumber = trimmedLine;
+                    if (dashCount > 0)
+                    {
+                        var dashRemoved = RemoveDashes(trimmedLine, blockNoHyphens.AsMemory().Slice(masterPartsNoHyphensIndex, trimmedLine.Length));
+                        masterParts[masterPartsIndex].PartNumberNoHyphens = dashRemoved;
+                        masterPartsNoHyphensIndex += dashRemoved.Length;
+                    }
+                    else
+                    {
+                        masterParts[masterPartsIndex].PartNumberNoHyphens = masterParts[masterPartsIndex].PartNumber;
+                    }
+                    masterPartsIndex++;
+                    startStringIndex = i + 1;
+                }
+                dashCount = 0;
+            }
+        }
+
+        return masterParts;
+    }
+
+    private static Part6[] BuildParts(string partsFilePath)
+    {
+        var fileSize = new FileInfo(partsFilePath).Length;
+        var content = File.ReadAllBytes(partsFilePath);
+        byte[] block = new byte[fileSize];
+        content.CopyTo(block, 0);
+
+        var lines = 0;
+        for (int i = 0; i < block.Length; i++)
+        {
+            if (block[i] == LF)
+            {
+                lines++;
+            }
+        }
+
+        var parts = new Part6[lines];
+        for (int i = 0; i < lines; i++)
+        {
+            parts[i] = new Part6();
+        }
+
+        var partsIndex = 0;
+        var startStringIndex = 0;
+        for (int i = 0; i < block.Length; i++)
+        {
+            if (block[i] == LF)
+            {
+                Memory<byte> line;
+                if (i > 0 && block[i - 1] == CR)
+                {
+                    line = block.AsMemory()[startStringIndex..(i - 1)];
+                }
+                else
+                {
+                    line = block.AsMemory()[startStringIndex..i];
+                }
+                var trimmedLine = ToUpperTrimInPlace(line);
+                if (!trimmedLine.IsEmpty)
+                {
+                    parts[partsIndex].PartNumber = trimmedLine;
+                    partsIndex++;
+                    startStringIndex = i + 1;
+                }
+            }
+        }
+
+        return parts;
+    }
+
+    public static Memory<byte> RemoveDashes(Memory<byte> partNumber, Memory<byte> buffer)
+    {
+        var k = 0;
+        for (int i = 0; i < partNumber.Length; i++)
+        {
+            if (partNumber.Span[i] != DASH)
+            {
+                buffer.Span[k] = partNumber.Span[i];
+                k++;
+            }
+        }
+        var output = buffer[..k];
+        return output;
+    }
+
+    public static Memory<byte> ToUpperTrimInPlace(Memory<byte> partNumber)
+    {
+        for (int i = 0; i < partNumber.Length; i++)
+        {
+            partNumber.Span[i] = (byte)char.ToUpper((char)partNumber.Span[i]);
+        }
+        var output = partNumber.Trim((byte)' ');
+        return output;
+    }
+
+    public static Memory<byte> ToUpperTrim(Memory<byte> partNumber, Memory<byte> buffer)
+    {
+        for (int i = 0; i < partNumber.Length; i++)
+        {
+            buffer.Span[i] = (byte)char.ToUpper((char)partNumber.Span[i]);
+        }
+        var output = buffer.Trim((byte)' ');
+        return output;
+    }
 }

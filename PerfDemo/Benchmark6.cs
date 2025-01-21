@@ -44,6 +44,7 @@ public class Benchmark6
     public static void RunAndDumpFor(Processor6 processor, SourceData6 sourceData, string filePath)
     {
         List<string> result = new List<string>();
+        var matchCount = 0;
 
         var parts = sourceData.Parts;
         for (var i = 0; i < parts.Length; i++)
@@ -51,9 +52,11 @@ public class Benchmark6
             var match = processor.FindMatchedPart(parts[i].PartNumber);
             if (match is not null)
             {
-                result.Add(Encoding.UTF8.GetString(match.Value.PartNumber.Span));
+                matchCount++;
+                result.Add(Encoding.UTF8.GetString(match.PartNumber.Span));
             }
         }
+        Console.WriteLine($"### {processor.Identifier}. Found {matchCount:n0} matches!");
         File.WriteAllLines(filePath, result);
     }
 }
