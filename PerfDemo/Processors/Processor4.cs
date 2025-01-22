@@ -64,12 +64,12 @@ public class Processor4 : IProcessor
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static MasterPart? FindMatchForPartNumber(
-        ReadOnlySpan<char> partNumber,
+        string partNumber,
         Dictionary<int, Dictionary<string, MasterPart>> suffixByLength)
     {
         if (suffixByLength.TryGetValue(partNumber.Length, out var masterPartBySuffix) && masterPartBySuffix != null)
         {
-            masterPartBySuffix.TryGetValue(partNumber.ToString(), out var match);
+            masterPartBySuffix.TryGetValue(partNumber, out var match);
             return match;
         }
 
